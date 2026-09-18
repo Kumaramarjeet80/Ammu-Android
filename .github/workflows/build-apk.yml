@@ -1,0 +1,70 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew || true
+
+      - name: Ensure Gradle Wrapper
+        run: |
+          if [ ! -f "gradlew" ]; then
+            gradle wrapper --gradle-version 8.7
+            chmod +x gradlew
+          fi
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ammu-player-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+      - name: Create Release with APK
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v19.0.0
+          name: "Ammu Native Android v19.0.0"
+          body: |
+            ## Ammu Audio Player - Production Android Release v19.0.0
+            
+            ### Features
+            - **100% Offline-First Pure Audio Player** in Kotlin & Jetpack Compose.
+            - **Media3 ExoPlayer & MediaSessionService** with background playback and notification controls.
+            - **Room Database** with Smart Playlists (Heavy Rotation, Recently Added, Unplayed).
+            - **Dual Equalizer**: VLC 10-band & Vivo Studio 10-band with dynamic Bezier spline Canvas.
+            - **Vinyl Disc Mode**: Tap album art to spin vinyl with concentric grooves & spindle hole.
+            - **Double-Tap Seeking**: -10s left half / +10s right half with floating badges.
+            - **Two-Zone Active Queue**: Zone A drag-and-drop reorder with red indicator line; Zone B shift/delete buttons.
+            - **4-Key Security Suite**: Scoped selective export, AES-256-GCM encryption, Admin Super-Key protection.
+            - **Storage Auditor & Duplicate Cleaner**: Instant file deduplication.
+            - **MP3 Audio Trimmer**: Built-in audio slicing.
+          files: app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
