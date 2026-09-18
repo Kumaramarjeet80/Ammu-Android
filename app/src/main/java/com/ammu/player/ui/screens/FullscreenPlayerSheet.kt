@@ -33,6 +33,7 @@ import com.ammu.player.data.local.entity.TrimmedClipEntity
 import com.ammu.player.ui.components.*
 import com.ammu.player.ui.theme.*
 import com.ammu.player.ui.viewmodel.AmmuMainViewModel
+import com.ammu.player.ui.viewmodel.AppDialog
 import com.ammu.player.ui.viewmodel.PlayerDrawer
 import kotlin.math.roundToInt
 
@@ -336,16 +337,18 @@ fun FullscreenPlayerSheet(
                         .horizontalScroll(rememberScrollState())
                 ) {
                     val drawers = listOf(
-                        PlayerDrawer.QUEUE to "≡ Playlist",
-                        PlayerDrawer.VOLUME to "🔊 Volume",
-                        PlayerDrawer.EQ to "🎛 EQ & Bass",
-                        PlayerDrawer.TIMESTAMPS to "⏱️ Markers",
-                        PlayerDrawer.LOOPER to "🔄 A-B Loop",
-                        PlayerDrawer.TRIMMER to "✂️ Trim",
-                        PlayerDrawer.LYRICS to "📝 Lyrics"
+                        Pair(PlayerDrawer.QUEUE, "≡ Playlist"),
+                        Pair(PlayerDrawer.VOLUME, "🔊 Volume"),
+                        Pair(PlayerDrawer.EQ, "🎛 EQ & Bass"),
+                        Pair(PlayerDrawer.TIMESTAMPS, "⏱️ Markers"),
+                        Pair(PlayerDrawer.LOOPER, "🔄 A-B Loop"),
+                        Pair(PlayerDrawer.CLIPS, "✂️ Trim"),
+                        Pair(PlayerDrawer.LYRICS, "📝 Lyrics")
                     )
 
-                    drawers.forEach { (drawer, label) ->
+                    drawers.forEach { pair ->
+                        val drawer = pair.first
+                        val label = pair.second
                         val isSelected = activeDrawer == drawer
                         Button(
                             onClick = { viewModel.toggleDrawer(drawer) },
@@ -524,7 +527,7 @@ fun FullscreenPlayerSheet(
                         }
                     }
 
-                    PlayerDrawer.TRIMMER -> {
+                    PlayerDrawer.CLIPS -> {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
